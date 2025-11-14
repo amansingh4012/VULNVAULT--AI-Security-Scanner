@@ -4,10 +4,10 @@
 services:
   # --- Backend Service (Web Service) ---
   - type: web
-    name: vulnvault-backend
+    name: vulnvault-backend  # This name determines the URL
     runtime: python
-    region: oregon
-    plan: free      # 'free' plan is correct for type: web
+    region: oregon # Region is correct for 'web' services
+    plan: free
     branch: main
     
     # --- Backend Build & Start ---
@@ -41,19 +41,15 @@ services:
   - type: web
     name: vulnvault-frontend
     runtime: static
-    region: oregon
+    # FIX 1: 'region' field removed for static sites
     branch: main
     
     # --- Frontend Build & Publish ---
     buildCommand: "cd frontend && npm install && npm run build"
-    # --- THIS IS THE FIX ---
-    staticPublishPath: "frontend/dist"  # Changed from publishDir
+    staticPublishPath: "frontend/dist"
     
     # --- Frontend Environment Variables ---
     envVars:
+      # FIX 2: Set the predictable URL of the backend service
       - key: VITE_API_URL
-        # This automatically gets the public URL of your backend service
-        fromService:
-          type: web
-          name: vulnvault-backend
-          property: url
+        value: https://vulnvault-backend.onrender.com

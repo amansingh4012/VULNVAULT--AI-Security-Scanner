@@ -5,7 +5,7 @@ import App from './App.jsx'
 import './index.css'
 
 // Import Clerk publishable key
-const PUBLISHABLE_KEY = pk_test_ZmxleGlibGUtYmx1ZWpheS0yOC5jbGVyay5hY2NvdW50cy5kZXYk
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 
 if (!PUBLISHABLE_KEY) {

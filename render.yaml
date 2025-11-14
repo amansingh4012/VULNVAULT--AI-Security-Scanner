@@ -1,27 +1,19 @@
-# render.yaml - FINAL CORRECTED VERSION
-# Defines a free backend web service and a free static site frontend.
-
 services:
   # --- Backend Service (Web Service) ---
   - type: web
-    name: vulnvault-backend  # This name determines the URL
-    runtime: python
-    region: oregon # Region is correct for 'web' services
+    name: vulnvault-backend
+    runtime: docker           # <--- CHANGE: Use Docker
+    region: oregon
     plan: free
     branch: main
-    
-    # --- Backend Build & Start ---
-    buildCommand: "pip install -r backend/requirements.txt"
-    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    dockerfilePath: ./backend/Dockerfile # <--- ADD: Path to your Dockerfile
+    # REMOVE buildCommand and startCommand - your Dockerfile already has them (RUN and CMD)
     
     # --- Backend Environment Variables ---
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.5
+      # You can remove PYTHON_VERSION, it's set in the Dockerfile
       
-      # --- SECRETS ---
-      # You MUST add these values manually in the Render Dashboard
-      # under the 'Environment' tab for this 'vulnvault-backend' service.
+      # --- SECRETS (Keep these) ---
       - key: MONGODB_URL
         sync: false
       - key: DATABASE_NAME
@@ -41,15 +33,9 @@ services:
   - type: web
     name: vulnvault-frontend
     runtime: static
-    # FIX 1: 'region' field removed for static sites
     branch: main
-    
-    # --- Frontend Build & Publish ---
     buildCommand: "cd frontend && npm install && npm run build"
     staticPublishPath: "frontend/dist"
-    
-    # --- Frontend Environment Variables ---
     envVars:
-      # FIX 2: Set the predictable URL of the backend service
       - key: VITE_API_URL
         value: https://vulnvault-backend.onrender.com

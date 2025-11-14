@@ -1,0 +1,32 @@
+# Python dependencies with KNOWN vulnerabilities for testing
+# These packages have known security issues
+
+# Django with SQL injection vulnerability (CVE-2023-43665)
+Django==3.2.0
+
+# Flask with security issues
+Flask==1.0.0
+
+# Requests with security vulnerability
+requests==2.6.0
+
+# Pillow with image processing vulnerabilities
+Pillow==7.0.0
+
+# PyYAML with arbitrary code execution vulnerability
+PyYAML==5.3.0
+
+# Jinja2 with XSS vulnerability
+Jinja2==2.10.0
+
+# urllib3 with security issues
+urllib3==1.24.0
+
+# cryptography with vulnerabilities
+cryptography==2.0.0
+
+# SQLAlchemy with SQL injection issues
+SQLAlchemy==1.2.0
+
+# httplib2 with HTTPS validation issues
+httplib2==0.9.0

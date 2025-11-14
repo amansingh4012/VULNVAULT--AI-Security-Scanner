@@ -1,0 +1,14 @@
+# Test requirements.txt file for dependency scanning
+# Contains some packages with known vulnerabilities (for testing purposes)
+
+# Vulnerable packages (intentionally old versions for testing)
+Django==2.2.0  # Has known security vulnerabilities
+requests==2.20.0  # Older version with vulnerabilities
+flask==0.12.2  # Very old version with security issues
+urllib3==1.24.1  # Has known CVEs
+jinja2==2.10.0  # Template injection vulnerabilities
+
+# Safe packages
+numpy==1.24.0
+pandas==2.0.0
+python-dotenv==1.0.0

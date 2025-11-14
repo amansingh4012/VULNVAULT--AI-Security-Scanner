@@ -1,15 +1,13 @@
-# render.yaml - CORRECTED VERSION
-# This Blueprint defines two services:
-# 1. A Python (FastAPI) Web Service for the backend
-# 2. A Static Site for the frontend
+# render.yaml - FINAL CORRECTED VERSION
+# Defines a free backend web service and a free static site frontend.
 
 services:
   # --- Backend Service (Web Service) ---
   - type: web
     name: vulnvault-backend
-    runtime: python  # Use 'runtime' as per latest docs
+    runtime: python
     region: oregon
-    plan: free      # 'free' plan is valid for type: web
+    plan: free      # 'free' plan is correct for type: web
     branch: main
     
     # --- Backend Build & Start ---
@@ -33,23 +31,23 @@ services:
       - key: CLERK_SECRET_KEY
         sync: false
       - key: EMAIL_ENABLED
-        value: "false" # Set to "true" in dashboard if you want email
+        value: "false" 
       - key: EMAIL_SENDER
         sync: false
       - key: EMAIL_PASSWORD
         sync: false
 
   # --- Frontend Service (Static Site) ---
-  - type: web          # <-- FIX 1: Type is 'web'
+  - type: web
     name: vulnvault-frontend
-    runtime: static    # <-- FIX 2: Runtime is 'static'
+    runtime: static
     region: oregon
-    # 'plan: free' is removed (FIX 3), as static sites are free by default
     branch: main
     
     # --- Frontend Build & Publish ---
     buildCommand: "cd frontend && npm install && npm run build"
-    publishDir: "frontend/dist"
+    # --- THIS IS THE FIX ---
+    staticPublishPath: "frontend/dist"  # Changed from publishDir
     
     # --- Frontend Environment Variables ---
     envVars:

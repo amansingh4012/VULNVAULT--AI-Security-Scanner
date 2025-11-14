@@ -27,7 +27,6 @@ aiofiles==23.2.1
 pandas==2.1.3
 numpy==1.26.2
 reportlab==4.0.7
-PyJWT==2.8.0
 clerk-backend-api==1.0.0
 
 # Testing

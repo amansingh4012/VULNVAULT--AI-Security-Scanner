@@ -1,19 +1,18 @@
-# render.yaml - Place this in the root of your repository
+# render.yaml - CORRECTED VERSION
 # This Blueprint defines two services:
 # 1. A Python (FastAPI) Web Service for the backend
-# 2. A Node.js (React/Vite) Static Site for the frontend
+# 2. A Static Site for the frontend
 
 services:
   # --- Backend Service (Web Service) ---
   - type: web
     name: vulnvault-backend
-    env: python
-    region: oregon  # You can choose a different region
-    plan: free      # Starts on the free plan
+    runtime: python  # Use 'runtime' as per latest docs
+    region: oregon
+    plan: free      # 'free' plan is valid for type: web
     branch: main
     
     # --- Backend Build & Start ---
-    # Commands are run from the project root
     buildCommand: "pip install -r backend/requirements.txt"
     startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
     
@@ -25,41 +24,37 @@ services:
       # --- SECRETS ---
       # You MUST add these values manually in the Render Dashboard
       # under the 'Environment' tab for this 'vulnvault-backend' service.
-      # 'sync: false' tells Render to not overwrite values you set.
       - key: MONGODB_URL
         sync: false
       - key: DATABASE_NAME
-        value: "vulnvault" # Or your production DB name
+        value: "vulnvault"
       - key: GEMINI_API_KEY
         sync: false
       - key: CLERK_SECRET_KEY
         sync: false
       - key: EMAIL_ENABLED
-        value: "true" # Set to "false" if you don't want email alerts
+        value: "false" # Set to "true" in dashboard if you want email
       - key: EMAIL_SENDER
         sync: false
       - key: EMAIL_PASSWORD
         sync: false
 
   # --- Frontend Service (Static Site) ---
-  - type: static
+  - type: web          # <-- FIX 1: Type is 'web'
     name: vulnvault-frontend
-    env: node
+    runtime: static    # <-- FIX 2: Runtime is 'static'
     region: oregon
-    plan: free
+    # 'plan: free' is removed (FIX 3), as static sites are free by default
     branch: main
     
     # --- Frontend Build & Publish ---
-    # Commands are run from the project root
     buildCommand: "cd frontend && npm install && npm run build"
-    # The directory (relative to root) where build files are
     publishDir: "frontend/dist"
     
     # --- Frontend Environment Variables ---
     envVars:
       - key: VITE_API_URL
         # This automatically gets the public URL of your backend service
-        # and injects it into your frontend build.
         fromService:
           type: web
           name: vulnvault-backend

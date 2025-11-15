@@ -1,41 +1,35 @@
 services:
-  # --- Backend Service (Web Service) ---
+  # --- Unified VulnVault Service (Frontend + Backend) ---
   - type: web
-    name: vulnvault-backend
-    runtime: docker           # <--- CHANGE: Use Docker
+    name: vulnvault-app
+    runtime: docker
     region: oregon
     plan: free
     branch: main
-    dockerfilePath: ./backend/Dockerfile # <--- ADD: Path to your Dockerfile
-    # REMOVE buildCommand and startCommand - your Dockerfile already has them (RUN and CMD)
+    dockerfilePath: ./Dockerfile
     
-    # --- Backend Environment Variables ---
+    # --- Environment Variables ---
     envVars:
-      # You can remove PYTHON_VERSION, it's set in the Dockerfile
-      
-      # --- SECRETS (Keep these) ---
+      # Database
       - key: MONGODB_URL
         sync: false
       - key: DATABASE_NAME
         value: "vulnvault"
+      
+      # AI & Authentication
       - key: GEMINI_API_KEY
         sync: false
       - key: CLERK_SECRET_KEY
         sync: false
+      
+      # Email Alerts (Optional)
       - key: EMAIL_ENABLED
         value: "false" 
       - key: EMAIL_SENDER
         sync: false
       - key: EMAIL_PASSWORD
         sync: false
-
-  # --- Frontend Service (Static Site) ---
-  - type: web
-    name: vulnvault-frontend
-    runtime: static
-    branch: main
-    buildCommand: "cd frontend && npm install && npm run build"
-    staticPublishPath: "frontend/dist"
-    envVars:
+      
+      # Frontend API URL (same service now)
       - key: VITE_API_URL
-        value: https://vulnvault-backend.onrender.com
+        value: https://vulnvault-app.onrender.com

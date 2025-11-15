@@ -77,14 +77,17 @@ function DependencyScanner() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 rounded-2xl shadow-2xl p-8 border border-purple-700/40">
+    <div className="max-w-4xl mx-auto">
+      <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700/50">
           <div className="flex items-center mb-6">
-            <span className="text-5xl mr-4">📦</span>
+            <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-xl mr-4">
+              <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
             <div>
-              <h2 className="text-3xl font-bold text-white">Dependency Scanner</h2>
-              <p className="text-gray-300 mt-1">Scan your project dependencies for known vulnerabilities</p>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">Dependency Scanner</h2>
+              <p className="text-gray-400 mt-1">Scan your project dependencies for known vulnerabilities</p>
             </div>
           </div>
 
@@ -99,7 +102,7 @@ function DependencyScanner() {
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder="Enter unique project name"
-                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:bg-gray-700/70"
               />
             </div>
 
@@ -109,7 +112,7 @@ function DependencyScanner() {
                 Dependency File *
               </label>
               <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/30 rounded-lg cursor-pointer bg-white/5 hover:bg-white/10 transition-all">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600/50 rounded-xl cursor-pointer bg-gray-700/20 hover:bg-gray-700/30 hover:border-primary-500/50 transition-all duration-300">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <svg className="w-10 h-10 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
@@ -133,8 +136,8 @@ function DependencyScanner() {
             </div>
 
             {/* Info Box */}
-            <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-4">
-              <h4 className="text-blue-200 font-semibold mb-2">📋 Supported Files:</h4>
+            <div className="bg-primary-500/10 border border-primary-500/30 rounded-lg p-4 shadow-md">
+              <h4 className="text-blue-200 font-semibold mb-2">Supported Files:</h4>
               <ul className="text-blue-100 text-sm space-y-1">
                 <li>• <strong>package.json</strong> - Scans npm/Node.js dependencies</li>
                 <li>• <strong>requirements.txt</strong> - Scans pip/Python dependencies</li>
@@ -145,7 +148,7 @@ function DependencyScanner() {
             {/* Error Message */}
             {error && (
               <div className="bg-red-500/20 border border-red-400/30 rounded-lg p-4">
-                <p className="text-red-200">⚠️ {error}</p>
+                <p className="text-red-200"><span className="font-semibold">Error:</span> {error}</p>
               </div>
             )}
 
@@ -153,7 +156,7 @@ function DependencyScanner() {
             <button
               onClick={handleScan}
               disabled={loading || !file || !projectName.trim()}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg"
+              className="w-full bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-600 text-white font-bold py-4 px-6 rounded-xl hover:from-primary-700 hover:via-secondary-700 hover:to-accent-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-1 shadow-xl hover:shadow-glow-lg"
             >
               {loading ? (
                 <span className="flex items-center justify-center">
@@ -164,19 +167,23 @@ function DependencyScanner() {
                   Scanning Dependencies...
                 </span>
               ) : (
-                '🔍 Scan Dependencies'
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Scan Dependencies
+                </span>
               )}
             </button>
           </div>
         </div>
 
-        {/* Results */}
-        {results && (
-          <div className="mt-8">
-            <Results data={results} projectName={projectName} />
-          </div>
-        )}
-      </div>
+      {/* Results */}
+      {results && (
+        <div className="mt-8">
+          <Results data={results} projectName={projectName} />
+        </div>
+      )}
     </div>
   );
 }

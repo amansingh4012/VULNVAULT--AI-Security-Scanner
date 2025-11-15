@@ -116,8 +116,8 @@ export default function FileUpload({ setResults, loading, setLoading }) {
   }
 
   return (
-    <div className="bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700">
-      <h2 className="text-2xl font-bold text-white mb-6">Upload Code File</h2>
+    <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm rounded-xl p-8 shadow-2xl border border-gray-700/50">
+      <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent mb-6">Upload Code File</h2>
       
       <form onSubmit={handleSubmit}>
         {/* Project Name Input */}
@@ -131,16 +131,16 @@ export default function FileUpload({ setResults, loading, setLoading }) {
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             placeholder="Enter project name (e.g., MyApp Security Scan)"
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:bg-gray-700/70"
             required
           />
         </div>
 
         <div
-          className={`border-2 border-dashed rounded-lg p-12 text-center transition-all ${
+          className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
             dragActive 
-              ? 'border-blue-500 bg-blue-500/10' 
-              : 'border-gray-600 hover:border-gray-500'
+              ? 'border-primary-500 bg-primary-500/10 shadow-glow' 
+              : 'border-gray-600/50 hover:border-primary-500/50 hover:bg-gray-700/20'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -182,17 +182,17 @@ export default function FileUpload({ setResults, loading, setLoading }) {
 
         {error && (
           <div className="mt-4 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-400">
-            ⚠️ {error}
+            <span className="font-semibold">Error:</span> {error}
           </div>
         )}
 
         <button
           type="submit"
           disabled={!file || !projectName.trim() || loading}
-          className={`w-full mt-6 py-4 rounded-lg font-bold text-lg transition-all ${
+          className={`w-full mt-6 py-4 rounded-xl font-bold text-lg transition-all duration-200 ${
             !file || !projectName.trim() || loading
               ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+              : 'bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-600 text-white hover:from-primary-700 hover:via-secondary-700 hover:to-accent-700 shadow-xl hover:shadow-glow-lg transform hover:-translate-y-1'
           }`}
         >
           {loading ? (
@@ -204,7 +204,12 @@ export default function FileUpload({ setResults, loading, setLoading }) {
               Scanning...
             </span>
           ) : (
-            '🔍 Scan for Vulnerabilities'
+            <span className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Scan for Vulnerabilities
+            </span>
           )}
         </button>
       </form>

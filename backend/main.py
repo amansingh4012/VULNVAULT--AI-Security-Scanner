@@ -1,5 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
@@ -13,6 +15,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from clerk_backend_api import Clerk
+from pathlib import Path
 
 # Load environment variables
 load_dotenv()
@@ -269,6 +272,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files (frontend) if they exist
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists() and (static_dir / "index.html").exists():
+    print(f"✅ Serving frontend from: {static_dir}")
+    try:
+        app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
+    except Exception as e:
+        print(f"⚠️ Could not mount assets: {e}")
+else:
+    print(f"ℹ️ Static directory not found (this is OK for development - frontend runs separately on port 5173)")
 
 # Include API routers
 try:
@@ -724,6 +738,34 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+# Serve frontend index.html for all non-API routes (SPA support)
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    """Serve frontend files for non-API routes (only in production)"""
+    # Skip API routes and health check
+    if (full_path.startswith("scan/") or 
+        full_path.startswith("ai/") or 
+        full_path.startswith("projects/") or
+        full_path == "health" or
+        full_path.startswith("docs") or
+        full_path.startswith("openapi.json")):
+        raise HTTPException(404, "API endpoint not found")
+    
+    static_dir = Path(__file__).parent / "static"
+    index_file = static_dir / "index.html"
+    
+    # In development, frontend runs separately on port 5173
+    if index_file.exists():
+        return FileResponse(index_file)
+    else:
+        # Development mode - return helpful message
+        return {
+            "message": "VulnVault API is running",
+            "frontend": "Run 'npm run dev' in frontend directory for development",
+            "frontend_url": "http://localhost:5173",
+            "api_docs": f"{API_URL if 'API_URL' in dir() else 'http://localhost:8000'}/docs"
+        }
 
 @app.post("/scan/upload", response_model=ScanResult)
 async def scan_uploaded_file(

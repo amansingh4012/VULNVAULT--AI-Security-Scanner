@@ -127,19 +127,19 @@ export default function SavedProjects({ onLoadResults }) {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-500"></div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-900/20 border border-red-500 rounded-lg p-6 text-center">
+      <div className="bg-red-900/20 border border-red-500 rounded-xl p-6 text-center shadow-lg">
         <div className="text-red-400 text-xl mb-2">⚠️ Error</div>
         <div className="text-gray-300">{error}</div>
         <button
           onClick={fetchProjects}
-          className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+          className="mt-4 px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white rounded-lg transition-all duration-200 font-semibold shadow-lg hover:shadow-glow transform hover:-translate-y-0.5"
         >
           Retry
         </button>
@@ -149,9 +149,13 @@ export default function SavedProjects({ onLoadResults }) {
 
   if (projects.length === 0) {
     return (
-      <div className="bg-gray-800 rounded-lg p-8 text-center">
-        <div className="text-6xl mb-4">📁</div>
-        <h3 className="text-2xl font-bold text-gray-300 mb-2">No Saved Projects</h3>
+      <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm rounded-xl p-8 text-center border border-gray-700/50 shadow-2xl">
+        <div className="flex items-center justify-center w-24 h-24 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl mx-auto mb-4">
+          <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+          </svg>
+        </div>
+        <h3 className="text-2xl font-bold text-white mb-2">No Saved Projects</h3>
         <p className="text-gray-400">
           Scan some code to save your first project!
         </p>
@@ -160,20 +164,19 @@ export default function SavedProjects({ onLoadResults }) {
   }
 
   return (
-    <div className="space-y-6 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 rounded-xl p-8 shadow-2xl border border-purple-700/40">
+    <div className="space-y-6 bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm rounded-xl p-8 shadow-2xl border border-gray-700/50">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold text-white mb-2">💾 Saved Projects</h2>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent mb-2">Saved Projects</h2>
           <p className="text-gray-400">
             {projects.length} saved scan{projects.length !== 1 ? 's' : ''}
           </p>
         </div>
         <button
           onClick={fetchProjects}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center gap-2"
+          className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white rounded-lg transition-all duration-200 flex items-center gap-2 font-semibold shadow-lg hover:shadow-glow transform hover:-translate-y-0.5"
         >
-          <span>🔄</span>
           <span>Refresh</span>
         </button>
       </div>
@@ -183,7 +186,7 @@ export default function SavedProjects({ onLoadResults }) {
         {projects.map((project) => (
           <div
             key={project.project_name}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-700/30 hover:border-purple-500 transition-all hover:shadow-lg hover:shadow-purple-500/20"
+            className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-lg rounded-2xl p-6 border border-gray-700/50 hover:border-primary-500/50 transition-all duration-300 hover:shadow-glow transform hover:-translate-y-1"
           >
             {/* Project Header */}
             <div className="flex items-start justify-between mb-4">
@@ -263,24 +266,34 @@ export default function SavedProjects({ onLoadResults }) {
             <div className="flex gap-2">
               <button
                 onClick={() => handleLoadProject(project.project_name)}
-                className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium"
+                className="flex-1 px-3 py-2 bg-transparent border-2 border-gray-600/50 hover:border-primary-500 text-gray-300 hover:text-primary-400 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center justify-center gap-1"
               >
-                📊 View
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View
               </button>
               <button
                 onClick={() => handleDownloadPDF(project.project_name)}
-                className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm"
+                className="px-3 py-2 bg-transparent border-2 border-gray-600/50 hover:border-green-500 text-gray-300 hover:text-green-400 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center gap-1"
                 title="Download PDF"
               >
-                📥
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                PDF
               </button>
               <button
                 onClick={() => handleDeleteProject(project.project_name)}
                 disabled={deletingProject === project.project_name}
-                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-2 bg-transparent border-2 border-gray-600/50 hover:border-red-500 text-gray-300 hover:text-red-400 rounded-lg transition-all duration-200 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                 title="Delete"
               >
-                {deletingProject === project.project_name ? '⏳' : '🗑️'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                {deletingProject === project.project_name ? '...' : 'Delete'}
               </button>
             </div>
           </div>

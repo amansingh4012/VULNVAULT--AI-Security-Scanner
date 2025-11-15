@@ -8,6 +8,7 @@ export default function Results({ data }) {
   const [loadingAI, setLoadingAI] = useState(null) // Track which vulnerability is loading
   const [aiError, setAiError] = useState(null)
   const [loadingProgress, setLoadingProgress] = useState(0) // Track loading progress
+  const [severityFilter, setSeverityFilter] = useState('ALL') // Filter state
 
   const handleGetAIFix = async (vulnerability, index) => {
     setLoadingAI(index) // Set the specific index being processed
@@ -88,10 +89,10 @@ export default function Results({ data }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[85vh] overflow-y-auto pr-2 scrollbar-hide">
       {/* Security Score Dashboard */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-8 shadow-2xl border border-gray-700">
-        <h2 className="text-2xl font-bold text-white mb-6">Security Report</h2>
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-8 shadow-2xl border border-gray-700/50">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent mb-6">Security Report</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Score */}
@@ -152,13 +153,70 @@ export default function Results({ data }) {
 
       {/* Vulnerabilities List */}
       {data.vulnerabilities && data.vulnerabilities.length > 0 && (
-        <div className="bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700">
-          <h3 className="text-2xl font-bold text-white mb-6">
-            🔍 Vulnerabilities Detected
-          </h3>
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-8 shadow-2xl border border-gray-700/50">
+          <div className="flex items-center gap-3 mb-6">
+            <svg className="w-7 h-7 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
+              Vulnerabilities Detected
+            </h3>
+          </div>
+
+          {/* Severity Filter Buttons */}
+          <div className="flex flex-wrap gap-2 mb-6 p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
+            <button
+              onClick={() => setSeverityFilter('ALL')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                severityFilter === 'ALL'
+                  ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg'
+                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 border border-gray-600/50'
+              }`}
+            >
+              All ({data.vulnerabilities.length})
+            </button>
+            {data.summary.high > 0 && (
+              <button
+                onClick={() => setSeverityFilter('HIGH')}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                  severityFilter === 'HIGH'
+                    ? 'bg-red-500 text-white shadow-lg'
+                    : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50'
+                }`}
+              >
+                High ({data.summary.high})
+              </button>
+            )}
+            {data.summary.medium > 0 && (
+              <button
+                onClick={() => setSeverityFilter('MEDIUM')}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                  severityFilter === 'MEDIUM'
+                    ? 'bg-yellow-500 text-black shadow-lg'
+                    : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/50'
+                }`}
+              >
+                Medium ({data.summary.medium})
+              </button>
+            )}
+            {data.summary.low > 0 && (
+              <button
+                onClick={() => setSeverityFilter('LOW')}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                  severityFilter === 'LOW'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/50'
+                }`}
+              >
+                Low ({data.summary.low})
+              </button>
+            )}
+          </div>
           
           <div className="space-y-4">
-            {data.vulnerabilities.map((vuln, index) => (
+            {data.vulnerabilities
+              .filter(vuln => severityFilter === 'ALL' || vuln.severity === severityFilter)
+              .map((vuln, index) => (
               <div
                 key={index}
                 className={`border-l-4 rounded-lg p-6 ${getSeverityColor(vuln.severity)}`}
@@ -212,17 +270,20 @@ export default function Results({ data }) {
                   <button
                     onClick={() => handleGetAIFix(vuln, index)}
                     disabled={loadingAI === index}
-                    className="mt-3 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-3 px-5 py-2.5 bg-gradient-to-r from-secondary-600 to-accent-600 hover:from-secondary-700 hover:to-accent-700 text-white rounded-lg transition-all duration-200 text-sm font-semibold shadow-lg hover:shadow-secondary-500/50 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
                   >
-                    {loadingAI === index ? '🤖 Generating AI Fix...' : '🤖 Get AI Fix Suggestion'}
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    {loadingAI === index ? 'Generating AI Fix...' : 'Get AI Fix Suggestion'}
                   </button>
                   
                   {/* Progress Bar */}
                   {loadingAI === index && (
                     <div className="mt-3 space-y-2">
-                      <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                      <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
                         <div 
-                          className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 h-full transition-all duration-500 ease-out flex items-center justify-center"
+                          className="bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 h-full transition-all duration-500 ease-out flex items-center justify-center shadow-glow"
                           style={{ width: `${loadingProgress}%` }}
                         >
                           <div className="text-xs font-bold text-white drop-shadow-lg">
@@ -230,7 +291,7 @@ export default function Results({ data }) {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 text-purple-400 text-xs">
+                      <div className="flex items-center gap-2 text-secondary-400 text-xs font-medium">
                         <div className="animate-spin">⚙️</div>
                         <span>
                           {loadingProgress < 30 && 'Connecting to Gemini AI...'}
@@ -250,10 +311,10 @@ export default function Results({ data }) {
 
       {/* AI Suggestion Modal */}
       {aiSuggestion && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={() => setAiSuggestion(null)}>
-          <div className="bg-gray-800 rounded-xl max-w-4xl max-h-[80vh] overflow-y-auto p-8 border border-purple-500" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setAiSuggestion(null)}>
+          <div className="bg-gradient-to-br from-gray-800/95 to-gray-900/95 rounded-xl max-w-4xl max-h-[80vh] overflow-y-auto p-8 border border-secondary-500/50 shadow-2xl shadow-secondary-500/20" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-6">
-              <h3 className="text-2xl font-bold text-purple-400">🤖 AI-Powered Fix Suggestion</h3>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-secondary-400 to-accent-400 bg-clip-text text-transparent">AI-Powered Fix Suggestion</h3>
               <button
                 onClick={() => setAiSuggestion(null)}
                 className="text-gray-400 hover:text-white text-2xl"
@@ -282,7 +343,7 @@ export default function Results({ data }) {
             <div className="mt-6 pt-6 border-t border-gray-700">
               <button
                 onClick={() => setAiSuggestion(null)}
-                className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium"
+                className="w-full px-6 py-3 bg-gradient-to-r from-secondary-600 to-accent-600 hover:from-secondary-700 hover:to-accent-700 text-white rounded-lg transition-all duration-200 font-semibold shadow-lg hover:shadow-glow transform hover:-translate-y-0.5"
               >
                 Close
               </button>
@@ -307,12 +368,14 @@ export default function Results({ data }) {
       {/* No Issues Found */}
       {data.vulnerabilities && data.vulnerabilities.length === 0 && (
         <div className="bg-green-500/10 border border-green-500 rounded-xl p-8 text-center">
-          <div className="text-6xl mb-4">✅</div>
+          <div className="flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-600 to-emerald-600 rounded-full mx-auto mb-4">
+            <span className="text-white font-bold text-4xl">✓</span>
+          </div>
           <h3 className="text-2xl font-bold text-green-400 mb-2">
             No Vulnerabilities Found!
           </h3>
           <p className="text-gray-300">
-            Your code looks secure. Great job! 🎉
+            Your code looks secure. Great job!
           </p>
         </div>
       )}
@@ -329,9 +392,12 @@ export default function Results({ data }) {
             link.download = `vulnvault-report-${Date.now()}.json`
             link.click()
           }}
-          className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-all"
+          className="px-8 py-3 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-600/50 flex items-center gap-2 justify-center"
         >
-          📥 Download Report (JSON)
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download Report (JSON)
         </button>
       </div>
     </div>

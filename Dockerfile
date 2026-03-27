@@ -24,7 +24,13 @@ RUN pip install --no-cache-dir \
 # Verify installations
 RUN bandit --version && semgrep --version && pip-audit --version && npm --version
 
-# Copy and build frontend first
+# Copy and build frontend
+# These ARGs are passed at build time for Vite to bake into the bundle
+ARG VITE_API_URL
+ARG VITE_CLERK_PUBLISHABLE_KEY
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY
+
 COPY frontend/package*.json ./frontend/
 WORKDIR /app/frontend
 RUN npm install

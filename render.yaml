@@ -7,8 +7,13 @@ services:
     plan: free
     branch: main
     dockerfilePath: ./Dockerfile
-    
-    # --- Environment Variables ---
+
+    # Docker build args (needed for Vite to bake env vars into frontend)
+    dockerBuildArgs:
+      VITE_API_URL: https://vulnvault-app.onrender.com
+      VITE_CLERK_PUBLISHABLE_KEY: pk_test_ZmxleGlibGUtYmx1ZWpheS0yOC5jbGVyay5hY2NvdW50cy5kZXYk
+
+    # --- Environment Variables (runtime) ---
     envVars:
       # Database
       - key: MONGODB_URL
@@ -21,6 +26,8 @@ services:
         sync: false
       - key: CLERK_SECRET_KEY
         sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
       
       # Email Alerts (Optional)
       - key: EMAIL_ENABLED
@@ -29,7 +36,7 @@ services:
         sync: false
       - key: EMAIL_PASSWORD
         sync: false
-      
-      # Frontend API URL (same service now)
-      - key: VITE_API_URL
-        value: https://vulnvault-app.onrender.com
+
+      # Python
+      - key: PYTHONUNBUFFERED
+        value: "1"

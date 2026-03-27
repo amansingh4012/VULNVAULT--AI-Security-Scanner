@@ -13,6 +13,15 @@ load_dotenv()
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/")
 DATABASE_NAME = os.getenv("DATABASE_NAME", "vulnvault")
 
+# Debug: show which MongoDB we're connecting to (mask credentials)
+def _mask_url(url):
+    if "@" in url:
+        prefix = url.split("://")[0]
+        after_at = url.split("@")[1]
+        return f"{prefix}://***:***@{after_at}"
+    return url
+print(f"🔗 MongoDB target: {_mask_url(MONGODB_URL)}")
+
 # Global database connection
 db = None
 projects_collection = None
@@ -33,7 +42,12 @@ def init_database():
         projects_collection = db['projects']
         
         # Create indexes for better query performance
-        projects_collection.create_index([("project_name", DESCENDING)], unique=True)
+        # Compound unique index: same user can't have duplicate project names, 
+        # but different users can
+        projects_collection.create_index(
+            [("user_id", DESCENDING), ("project_name", DESCENDING)], 
+            unique=True
+        )
         projects_collection.create_index([("created_at", DESCENDING)])
         projects_collection.create_index([("scan_type", DESCENDING)])
         
@@ -49,8 +63,11 @@ def init_database():
             db = client[DATABASE_NAME]
             projects_collection = db['projects']
             
-            # Create indexes for better query performance
-            projects_collection.create_index([("project_name", DESCENDING)], unique=True)
+            # Create indexes
+            projects_collection.create_index(
+                [("user_id", DESCENDING), ("project_name", DESCENDING)], 
+                unique=True
+            )
             projects_collection.create_index([("created_at", DESCENDING)])
             projects_collection.create_index([("scan_type", DESCENDING)])
             return True

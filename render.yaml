@@ -1,0 +1,35 @@
+services:
+  # --- Unified VulnVault Service (Frontend + Backend) ---
+  - type: web
+    name: vulnvault-app
+    runtime: docker
+    region: oregon
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    
+    # --- Environment Variables ---
+    envVars:
+      # Database
+      - key: MONGODB_URL
+        sync: false
+      - key: DATABASE_NAME
+        value: "vulnvault"
+      
+      # AI & Authentication
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      
+      # Email Alerts (Optional)
+      - key: EMAIL_ENABLED
+        value: "false" 
+      - key: EMAIL_SENDER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      
+      # Frontend API URL (same service now)
+      - key: VITE_API_URL
+        value: https://vulnvault-app.onrender.com

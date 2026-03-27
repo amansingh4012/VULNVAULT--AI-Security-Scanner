@@ -1,0 +1,35 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic-settings
+
+# Security Scanners
+bandit
+semgrep
+pip-audit
+
+# ML/AI
+transformers
+torch
+sentence-transformers
+
+# GitHub Integration
+PyGithub
+GitPython
+
+# Database
+pymongo
+dnspython
+
+# Utilities
+python-dotenv
+aiofiles
+pandas
+numpy
+reportlab
+clerk-backend-api
+
+# Testing
+pytest
+pytest-asyncio
+google-generativeai

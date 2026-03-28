@@ -8,18 +8,18 @@ bandit
 semgrep
 pip-audit
 
-# ML/AI
-transformers
-torch
-sentence-transformers
+# AI
+google-generativeai
 
 # GitHub Integration
 PyGithub
 GitPython
+requests
 
 # Database
 pymongo
 dnspython
+mongomock
 
 # Utilities
 python-dotenv
@@ -28,8 +28,8 @@ pandas
 numpy
 reportlab
 clerk-backend-api
+PyJWT
 
 # Testing
 pytest
 pytest-asyncio
-google-generativeai

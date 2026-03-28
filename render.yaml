@@ -1,7 +1,7 @@
 services:
   # --- Unified VulnVault Service (Frontend + Backend) ---
   - type: web
-    name: vulnvault-app
+    name: vulnvault-ai-security-scanner
     runtime: docker
     region: oregon
     plan: free
@@ -10,7 +10,7 @@ services:
 
     # Docker build args (needed for Vite to bake env vars into frontend)
     dockerBuildArgs:
-      VITE_API_URL: https://vulnvault-app.onrender.com
+      VITE_API_URL: https://vulnvault-ai-security-scanner.onrender.com
       VITE_CLERK_PUBLISHABLE_KEY: pk_test_ZmxleGlibGUtYmx1ZWpheS0yOC5jbGVyay5hY2NvdW50cy5kZXYk
 
     # --- Environment Variables (runtime) ---

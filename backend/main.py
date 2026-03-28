@@ -1,3 +1,4 @@
+import sys
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -231,7 +232,7 @@ def send_email_alert(project_name: str, critical_vulns: list, scan_summary: dict
                 </div>
                 
                 <p style="margin-top: 20px;">
-                  <a href="http://localhost:5174" style="display: inline-block; background-color: #1976d2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
+                  <a href="{os.getenv('VITE_API_URL', 'http://localhost:5173')}" style="display: inline-block; background-color: #1976d2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
                     View Full Report in VulnVault
                   </a>
                 </p>
@@ -382,7 +383,7 @@ def scan_npm_dependencies(package_json_path: str) -> list:
             capture_output=True,
             text=True,
             timeout=45,
-            shell=True  # Use shell on Windows
+            shell=(sys.platform == 'win32')
         )
         
         if install_result.returncode != 0:
@@ -396,7 +397,7 @@ def scan_npm_dependencies(package_json_path: str) -> list:
             capture_output=True,
             text=True,
             timeout=60,
-            shell=True  # Use shell on Windows
+            shell=(sys.platform == 'win32')
         )
         
         if result.stdout:
@@ -469,7 +470,7 @@ def scan_python_dependencies(requirements_path: str) -> list:
             capture_output=True,
             text=True,
             timeout=120,
-            shell=True  # Use shell on Windows
+            shell=(sys.platform == 'win32')
         )
         
         if result.stdout:
@@ -749,6 +750,7 @@ async def serve_frontend(full_path: str):
     if (full_path.startswith("scan/") or 
         full_path.startswith("ai/") or 
         full_path.startswith("projects/") or
+        full_path.startswith("api/") or
         full_path == "health" or
         full_path.startswith("docs") or
         full_path.startswith("openapi.json")):

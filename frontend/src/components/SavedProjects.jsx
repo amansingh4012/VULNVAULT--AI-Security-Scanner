@@ -79,7 +79,7 @@ export default function SavedProjects({ onLoadResults }) {
     try {
       const token = await getToken();
       const response = await axios.get(
-        `${API_URL}/projects/${encodeURIComponent(projectName)}/pdf`,
+        `${API_URL}/api/projects/${encodeURIComponent(projectName)}/pdf`,
         { 
           headers: { Authorization: `Bearer ${token}` },
           responseType: 'blob' 

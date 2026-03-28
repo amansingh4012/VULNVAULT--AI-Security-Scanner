@@ -1459,7 +1459,7 @@ Be brief and educational."""
         print(f"📋 Traceback: {traceback.format_exc()}")
         raise HTTPException(500, f"Failed to generate AI suggestion: {str(e)}")
 
-@app.get("/projects/{project_name}/pdf")
+@app.get("/api/projects/{project_name}/pdf")
 async def generate_pdf_report(project_name: str, user: dict = Depends(get_current_user)):
     """Generate PDF report for a project securely"""
     from reportlab.lib.pagesizes import letter, A4

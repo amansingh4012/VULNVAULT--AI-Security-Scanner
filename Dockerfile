@@ -56,5 +56,8 @@ COPY --from=frontend-build /app/frontend/dist /app/backend/static
 # Expose the standard web port
 EXPOSE 8000
 
+# Change working directory so Python imports work exactly like local dev
+WORKDIR /app/backend
+
 # Start the uvicorn server binding to 0.0.0.0 and using PORT from environment (default 8000)
-CMD ["sh", "-c", "python -m uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -327,14 +327,17 @@ def run_bandit_scan(file_path: str) -> dict:
     """Run Bandit scanner and return parsed results"""
     try:
         result = subprocess.run(
-            ['bandit', '-f', 'json', file_path],
+            ['bandit', '-f', 'json', '-q', file_path],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=15
         )
         
         if result.stdout:
             return json.loads(result.stdout)
+        return {"results": [], "metrics": {}}
+    except subprocess.TimeoutExpired:
+        print(f"⏱️ Bandit scan timed out for {file_path}")
         return {"results": [], "metrics": {}}
     except Exception as e:
         print(f"Bandit scan error: {e}")
@@ -344,12 +347,12 @@ def run_bandit_scan(file_path: str) -> dict:
 def run_semgrep_scan(file_path: str, file_ext: str) -> dict:
     """Run Semgrep scanner for multi-language support"""
     try:
-        # Auto-detect language or use specific config
+        # Use p/default ruleset (bundled, no network download) instead of auto
         result = subprocess.run(
-            ['semgrep', '--config=auto', '--json', file_path],
+            ['semgrep', '--config=p/default', '--json', '--no-git', '--quiet', file_path],
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=20
         )
         
         if result.stdout:
@@ -357,6 +360,9 @@ def run_semgrep_scan(file_path: str, file_ext: str) -> dict:
             # Convert Semgrep format to Bandit-like format
             return convert_semgrep_to_bandit_format(data)
         return {"results": [], "metrics": {}}
+    except subprocess.TimeoutExpired:
+        print(f"⏱️ Semgrep timed out for {file_path}")
+        return {"results": []}
     except FileNotFoundError:
         # Semgrep not installed, return empty results
         print(f"Semgrep not installed. Using basic pattern matching for {file_ext} files")
@@ -462,10 +468,10 @@ def scan_python_dependencies(requirements_path: str) -> list:
     """Scan Python dependencies for vulnerabilities using pip-audit"""
     try:
         result = subprocess.run(
-            ['pip-audit', '-r', requirements_path, '--format', 'json'],
+            ['pip-audit', '-r', requirements_path, '--format', 'json', '--progress-spinner=off'],
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=20,
             shell=(sys.platform == 'win32')
         )
         
@@ -1034,7 +1040,14 @@ def scan_github_repo(
     try:
         import shutil
         import stat
+        import time
         from pathlib import Path
+        
+        scan_start_time = time.time()
+        SCAN_TIME_BUDGET = 50  # seconds - leave headroom before Render kills us
+        
+        def time_remaining():
+            return SCAN_TIME_BUDGET - (time.time() - scan_start_time)
         
         # Validate project name
         if not project_name or not project_name.strip():
@@ -1049,10 +1062,11 @@ def scan_github_repo(
         
         try:
             try:
-                # Try to use Git to clone
+                # Try to use Git to clone (with short timeout)
                 import git
                 print(f"Cloning {repo_url}...")
-                git.Repo.clone_from(repo_url, temp_dir, depth=1)
+                env = {'GIT_TERMINAL_PROMPT': '0'}  # Prevent git from hanging on auth prompts
+                git.Repo.clone_from(repo_url, temp_dir, depth=1, env=env, kill_after_timeout=15)
             except (ImportError, Exception) as e:
                 # Fallback: Download ZIP if Git executable is not on system path
                 print(f"Git clone failed or Git not installed. Attempting ZIP download... ({str(e)})")
@@ -1089,11 +1103,15 @@ def scan_github_repo(
             if not all_files:
                 raise HTTPException(404, "No scannable code files found in repository")
             
-            # Scan all files
+            # Scan all files (with time budget)
             all_vulnerabilities = []
             summary = {"high": 0, "medium": 0, "low": 0}
+            files_scanned = 0
             
-            for code_file in all_files[:15]:  # Limit to 15 files for performance to prevent Render timeout
+            for code_file in all_files[:10]:  # Limit to 10 files for Render free tier timeout
+                if time_remaining() < 10:
+                    print(f"⏱️ Time budget running low ({time_remaining():.0f}s left), stopping file scan at {files_scanned} files")
+                    break
                 file_ext = code_file.suffix.lower()
                 
                 # Choose scanner based on file type
@@ -1101,6 +1119,7 @@ def scan_github_repo(
                     scan_results = run_bandit_scan(str(code_file))
                 else:
                     scan_results = run_semgrep_scan(str(code_file), file_ext)
+                files_scanned += 1
                 
                 for result in scan_results.get('results', []):
                     severity = result.get('issue_severity', 'UNKNOWN').upper()
@@ -1124,29 +1143,35 @@ def scan_github_repo(
                     if severity_lower in summary:
                         summary[severity_lower] += 1
             
-            # Scan dependencies in the repository
-            print(f"📦 Scanning dependencies in repository...")
-            dependency_vulnerabilities = scan_dependencies_in_directory(temp_dir)
+            # Scan dependencies only if we have time remaining
+            if time_remaining() > 15:
+                print(f"📦 Scanning dependencies in repository... ({time_remaining():.0f}s remaining)")
+                dependency_vulnerabilities = scan_dependencies_in_directory(temp_dir)
+                
+                # Add dependency vulnerabilities to results
+                for dep_vuln in dependency_vulnerabilities:
+                    all_vulnerabilities.append(dep_vuln)
+                    severity_lower = dep_vuln.get('severity', 'UNKNOWN').lower()
+                    if severity_lower in summary:
+                        summary[severity_lower] += 1
+            else:
+                print(f"⏱️ Skipping dependency scan - only {time_remaining():.0f}s remaining")
             
-            # Add dependency vulnerabilities to results
-            for dep_vuln in dependency_vulnerabilities:
-                all_vulnerabilities.append(dep_vuln)
-                severity_lower = dep_vuln.get('severity', 'UNKNOWN').lower()
-                if severity_lower in summary:
-                    summary[severity_lower] += 1
-            
-            # Scan for secrets in the repository
-            print(f"🔐 Scanning for hardcoded secrets...")
-            secret_vulnerabilities = scan_secrets_in_directory(temp_dir)
-            
-            for secret in secret_vulnerabilities:
-                all_vulnerabilities.append(secret)
-                severity_lower = secret.get('severity', 'UNKNOWN').lower()
-                if severity_lower in summary:
-                    summary[severity_lower] += 1
-            
-            if secret_vulnerabilities:
-                print(f"   Found {len(secret_vulnerabilities)} hardcoded secrets")
+            # Scan for secrets if we have time (secret scanning is fast - no subprocess)
+            if time_remaining() > 5:
+                print(f"🔐 Scanning for hardcoded secrets... ({time_remaining():.0f}s remaining)")
+                secret_vulnerabilities = scan_secrets_in_directory(temp_dir)
+                
+                for secret in secret_vulnerabilities:
+                    all_vulnerabilities.append(secret)
+                    severity_lower = secret.get('severity', 'UNKNOWN').lower()
+                    if severity_lower in summary:
+                        summary[severity_lower] += 1
+                
+                if secret_vulnerabilities:
+                    print(f"   Found {len(secret_vulnerabilities)} hardcoded secrets")
+            else:
+                print(f"⏱️ Skipping secret scan - only {time_remaining():.0f}s remaining")
             
             # Calculate security score
             security_score = calculate_security_score(all_vulnerabilities)
@@ -1157,8 +1182,11 @@ def scan_github_repo(
                 "total_issues": len(all_vulnerabilities),
                 "summary": summary,
                 "repo_url": repo_url,
-                "files_scanned": len(all_files)
+                "files_scanned": files_scanned,
+                "scan_time_seconds": round(time.time() - scan_start_time, 1)
             }
+            
+            print(f"✅ GitHub scan completed in {time.time() - scan_start_time:.1f}s - scanned {files_scanned} files, found {len(all_vulnerabilities)} issues")
             
             # Save to MongoDB
             if projects_collection is not None:

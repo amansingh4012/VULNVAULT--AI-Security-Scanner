@@ -774,7 +774,7 @@ async def serve_frontend(full_path: str):
         }
 
 @app.post("/scan/upload", response_model=ScanResult)
-async def scan_uploaded_file(
+def scan_uploaded_file(
     file: UploadFile = File(...), 
     project_name: str = Form(...),
     user: Optional[dict] = Depends(get_current_user_optional)
@@ -799,7 +799,7 @@ async def scan_uploaded_file(
     
     # Handle ZIP files
     if filename_lower.endswith('.zip'):
-        return await scan_zip_file(file, project_name, user)
+        return scan_zip_file(file, project_name, user)
     
     # Check if file type is supported
     if not filename_lower.endswith(SUPPORTED_EXTENSIONS):
@@ -808,7 +808,7 @@ async def scan_uploaded_file(
     # Save uploaded file temporarily with correct extension
     file_ext = os.path.splitext(file.filename)[1].lower() or '.py'
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext, mode='wb') as tmp:
-        content = await file.read()
+        content = file.file.read()
         tmp.write(content)
         tmp_path = tmp.name
     
@@ -923,7 +923,7 @@ async def scan_uploaded_file(
             os.unlink(tmp_path)
 
 # Helper function to scan ZIP files
-async def scan_zip_file(file: UploadFile, project_name: str = "", user: Optional[dict] = None) -> dict:
+def scan_zip_file(file: UploadFile, project_name: str = "", user: Optional[dict] = None) -> dict:
     """Extract and scan all files in a ZIP archive"""
     import zipfile
     import shutil
@@ -937,7 +937,7 @@ async def scan_zip_file(file: UploadFile, project_name: str = "", user: Optional
     try:
         # Save uploaded ZIP
         with open(zip_path, 'wb') as f:
-            content = await file.read()
+            content = file.file.read()
             f.write(content)
         
         # Extract ZIP safely (prevent ZipSlip path traversal)
@@ -1022,7 +1022,7 @@ async def scan_zip_file(file: UploadFile, project_name: str = "", user: Optional
             shutil.rmtree(temp_dir, onerror=handle_remove_readonly)
 
 @app.post("/scan/github")
-async def scan_github_repo(
+def scan_github_repo(
     repo_url: str, 
     project_name: str = "",
     user: Optional[dict] = Depends(get_current_user_optional)

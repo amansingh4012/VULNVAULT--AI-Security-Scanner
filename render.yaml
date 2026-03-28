@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: vulnvault-production
+    env: docker
+    region: oregon
+    plan: free
+    branch: main
+    healthCheckPath: /health
+    # Inject build-time arguments into the Dockerfile for Vite
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: VITE_API_URL
+        sync: false
+      - key: MONGODB_URL
+        sync: false
+      - key: DATABASE_NAME
+        value: vulnvault
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: EMAIL_ENABLED
+        value: "false"

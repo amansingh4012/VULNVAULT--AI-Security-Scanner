@@ -13,22 +13,14 @@ load_dotenv()
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/")
 DATABASE_NAME = os.getenv("DATABASE_NAME", "vulnvault")
 
-# Debug: show which MongoDB we're connecting to (mask credentials)
-def _mask_url(url):
-    if "@" in url:
-        prefix = url.split("://")[0]
-        after_at = url.split("@")[1]
-        return f"{prefix}://***:***@{after_at}"
-    return url
-print(f"🔗 MongoDB target: {_mask_url(MONGODB_URL)}")
-
 # Global database connection
 db = None
 projects_collection = None
+_connection_status = "not_attempted"
 
 def init_database():
     """Initialize MongoDB connection"""
-    global db, projects_collection
+    global db, projects_collection, _connection_status
     
     try:
         # Try to connect to MongoDB
@@ -51,53 +43,26 @@ def init_database():
         projects_collection.create_index([("created_at", DESCENDING)])
         projects_collection.create_index([("scan_type", DESCENDING)])
         
-        print(f"✅ MongoDB connected: {DATABASE_NAME}")
+        _connection_status = "connected"
         return True
         
-    except (ConnectionFailure, ServerSelectionTimeoutError) as e:
-        print(f"⚠️ MongoDB not available: {e}")
-        try:
-            import mongomock
-            print("   Using in-memory mongomock database instead. Projects will be saved temporarily.")
-            client = mongomock.MongoClient()
-            db = client[DATABASE_NAME]
-            projects_collection = db['projects']
-            
-            # Create indexes
-            projects_collection.create_index(
-                [("user_id", DESCENDING), ("project_name", DESCENDING)], 
-                unique=True
-            )
-            projects_collection.create_index([("created_at", DESCENDING)])
-            projects_collection.create_index([("scan_type", DESCENDING)])
-            return True
-        except ImportError:
-            print("   Projects will not be saved. To enable, start MongoDB and configure MONGODB_URL")
-            db = None
-            projects_collection = None
-            return False
-            
-    except Exception as e:
-        print(f"⚠️ Database initialization error: {e}")
-        try:
-            import mongomock
-            print("   Using in-memory mongomock database instead for generic error fallback.")
-            client = mongomock.MongoClient()
-            db = client[DATABASE_NAME]
-            projects_collection = db['projects']
-            return True
-        except ImportError:
-            db = None
-            projects_collection = None
-            return False
+    except (ConnectionFailure, ServerSelectionTimeoutError, Exception) as e:
+        # Instead of falling back to mongomock, just mark it as failed
+        db = None
+        projects_collection = None
+        _connection_status = "failed"
+        return False
 
 def get_projects_collection():
     """Get projects collection (returns None if not connected)"""
     return projects_collection
+
+def get_connection_status():
+    """Get human-readable connection status"""
+    return _connection_status
 
 def close_database():
     """Close database connection"""
     global db, projects_collection
     if db is not None:
         db.client.close()
-        print("MongoDB connection closed")

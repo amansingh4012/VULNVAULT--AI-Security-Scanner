@@ -3,6 +3,7 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
@@ -274,6 +275,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files (frontend) if they exist
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists() and (static_dir / "index.html").exists():
+    try:
+        app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
+    except Exception:
+        pass
 
 # Include API routers
 try:
@@ -729,10 +738,10 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
-# Catch-all route
+# Serve frontend index.html for all non-API routes (SPA support)
 @app.get("/{full_path:path}")
-async def catch_all(full_path: str):
-    """Return API info for any unknown route"""
+async def serve_frontend(full_path: str):
+    """Serve frontend files for non-API routes (production mode)"""
     if (full_path.startswith("scan/") or 
         full_path.startswith("ai/") or 
         full_path.startswith("projects/") or
@@ -742,12 +751,20 @@ async def catch_all(full_path: str):
         full_path.startswith("openapi.json")):
         raise HTTPException(404, "API endpoint not found")
     
-    return {
-        "message": "VulnVault API is running",
-        "frontend": "Run 'npm run dev' in frontend directory",
-        "frontend_url": "http://localhost:5173",
-        "api_docs": "http://localhost:8000/docs"
-    }
+    static_dir = Path(__file__).parent / "static"
+    index_file = static_dir / "index.html"
+    
+    # In production, this will serve the React app
+    if index_file.exists():
+        return FileResponse(index_file)
+    else:
+        # Development mode - return helpful message
+        return {
+            "message": "VulnVault API is running",
+            "frontend": "Run 'npm run dev' in frontend directory for development",
+            "frontend_url": "http://localhost:5173",
+            "api_docs": "http://localhost:8000/docs"
+        }
 
 @app.post("/scan/upload", response_model=ScanResult)
 async def scan_uploaded_file(

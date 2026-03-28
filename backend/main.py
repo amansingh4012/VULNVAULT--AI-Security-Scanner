@@ -374,11 +374,11 @@ def scan_npm_dependencies(package_json_path: str) -> list:
         # First, install dependencies (with force to handle version issues)
         print(f"📦 Installing npm dependencies...")
         install_result = subprocess.run(
-            ['npm', 'install', '--package-lock-only', '--legacy-peer-deps', '--no-audit'],
+            ['npm', 'install', '--package-lock-only', '--legacy-peer-deps', '--no-audit', '--ignore-scripts'],
             cwd=package_dir,
             capture_output=True,
             text=True,
-            timeout=45,
+            timeout=15,
             shell=(sys.platform == 'win32')
         )
         
@@ -392,7 +392,7 @@ def scan_npm_dependencies(package_json_path: str) -> list:
             cwd=package_dir,
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=15,
             shell=(sys.platform == 'win32')
         )
         
@@ -965,7 +965,7 @@ async def scan_zip_file(file: UploadFile, project_name: str = "", user: Optional
         summary = {"high": 0, "medium": 0, "low": 0}
         files_scanned = 0
         
-        for file_path in all_files[:50]:  # Limit to 50 files
+        for file_path in all_files[:15]:  # Limit to 15 files to prevent Render 100s timeout
             file_ext = file_path.suffix.lower()
             
             # Choose scanner
@@ -1093,7 +1093,7 @@ async def scan_github_repo(
             all_vulnerabilities = []
             summary = {"high": 0, "medium": 0, "low": 0}
             
-            for code_file in all_files[:30]:  # Limit to 30 files for performance
+            for code_file in all_files[:15]:  # Limit to 15 files for performance to prevent Render timeout
                 file_ext = code_file.suffix.lower()
                 
                 # Choose scanner based on file type

@@ -728,12 +728,19 @@ def get_fix_suggestion(issue_type: str, description: str) -> str:
 # Routes
 @app.get("/")
 async def root():
+    """Serve the React frontend on the root URL, or return API status if not built"""
+    static_dir = Path(__file__).parent / "static"
+    index_file = static_dir / "index.html"
+    
+    if index_file.exists():
+        return FileResponse(index_file)
+    
     return {
         "message": "VulnVault API",
         "version": "1.0.0",
-        "status": "operational"
+        "status": "operational",
+        "note": "Frontend not found in static folder"
     }
-
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
